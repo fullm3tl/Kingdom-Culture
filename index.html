@@ -106,9 +106,10 @@ function render(){
  }else{
   const r=S.reveal;
   if(r<0)h=`<div class="panel c"><h2 style="${H2}">Time’s up!</h2>${host?`<p><b>${S.finished}</b> of <b>${S.players}</b> finished everything.</p><button class="go" id="next">Reveal first answer</button>`:`<p>You completed <b>${done}</b> of ${N()} questions.</p><p class="mut">Waiting for the host to reveal the answers…</p>`}</div>`;
-  else if(r<N())h=revealCard(r)+(host?`<div class="row"><button class="go" id="next">${r===N()-1?"Show final screen":"Next question →"}</button></div>`:"");
+  else if(r<N())h=revealCard(r)+(host?`<div class="row">${r>0?`<button id="prev">← Previous</button>`:""}<button class="go" id="next">${r===N()-1?"Show final screen":"Next question →"}</button></div>`:"");
   else{let ok=0;S.key.forEach((k,i)=>{if(mine[i]===k.a)ok++});
-   h=`<div class="panel c"><h2 style="${H2};font-size:1.8rem">That’s a wrap!</h2>${host?`<p>All ${N()} answers revealed. Thank you for hosting.</p><button class="go" id="reset">Start a new round</button>`:`<p>You answered <b>${done}</b> of ${N()} and got <b>${ok}</b> right.</p><p class="mut">Guard your heart above all else.</p>`}</div>`}
+   const sm=S.summary?`<div class="panel c"><div class="n">Scored 80% or higher</div><div class="badge T">${S.summary.high} of ${S.summary.people}</div><p class="mut">${S.summary.people?Math.round(S.summary.high/S.summary.people*100):0}% of participants got ${S.summary.need}+ of ${N()} right</p></div>`:"";
+   h=`<div class="panel c"><h2 style="${H2};font-size:1.8rem">That’s a wrap!</h2>${host?`<p>All ${N()} answers revealed. Thank you for hosting.</p>`:`<p>You answered <b>${done}</b> of ${N()} and got <b>${ok}</b> right.</p>`}</div>${sm}${host?`<div class="row"><button id="prev">← Back to last question</button><button class="go" id="reset">Start a new round</button></div>`:`<p class="c mut">Guard your heart above all else.</p>`}`}
  }
  app.innerHTML=h;const slot=$("#qrslot");if(slot)slot.appendChild(qrEl);
  requestAnimationFrame(()=>document.querySelectorAll(".fill").forEach(f=>f.style.width=f.dataset.w+"%"));
@@ -123,7 +124,7 @@ app.addEventListener("click",e=>{
  if(!host)return;
  if(b.id==="start")act("start",{minutes:+$("#mins").value||15});
  if(b.id==="plus")act("plus");if(b.id==="end")act("end");
- if(b.id==="next")act("next");if(b.id==="reset")act("reset");
+ if(b.id==="next")act("next");if(b.id==="prev")act("prev");if(b.id==="reset")act("reset");
 });
 const es=new EventSource("/events"+(host?"":"?uid="+uid));
 es.onmessage=e=>{

@@ -8,14 +8,14 @@ if (!process.env.HOST_KEY) console.warn('HOST_KEY not set – using the default 
 // Leave a verse's text as "" to show only the reference.
 const V = (ref, text = '') => [ref, text];
 const Q = [
-["Chemistry is enough to build a lasting relationship.","M",[V("Proverbs 24:3-4")]],
+["Chemistry is enough to build a lasting relationship.","M",[V("Proverbs 24:3-4","By wisdom a house is built,\nand by understanding it is established;\nby knowledge the rooms are filled\nwith all precious and pleasant riches.")]],
 ["Sex was designed by God, not created by culture.","T",[
   V("Genesis 2:24-25","Therefore a man shall leave his father and his mother and hold fast to his wife, and they shall become one flesh. And the man and his wife were both naked and were not ashamed."),
   V("Proverbs 5:18-19","Let your fountain be blessed,\nand rejoice in the wife of your youth,\na lovely deer, a graceful doe.\nLet her breasts fill you at all times with delight;\nbe intoxicated always in her love.")]],
-["If two people love each other, sex outside of marriage is automatically acceptable in God’s eyes.","M",[V("1 Corinthians 6:18-20")]],
-["Sexual purity is only about physical behavior; your thoughts and intentions don’t matter.","M",[V("Matthew 5:27-28")]],
-["God designed sex to be enjoyed within the covenant of marriage.","T",[V("Hebrews 13:4")]],
-["Waiting until marriage is outdated and unrealistic.","M",[V("1 Thessalonians 4:3-5")]],
+["If two people love each other, sex outside of marriage is automatically acceptable in God’s eyes.","M",[V("1 Corinthians 6:18-20","Flee from sexual immorality. Every other sin a person commits is outside the body, but the sexually immoral person sins against his own body. Or do you not know that your body is a temple of the Holy Spirit within you, whom you have from God? You are not your own, for you were bought with a price. So glorify God in your body.")]],
+["Sexual purity is only about physical behavior; your thoughts and intentions don’t matter.","M",[V("Matthew 5:27-28","“You have heard that it was said, ‘You shall not commit adultery.’ But I say to you that everyone who looks at a woman with lustful intent has already committed adultery with her in his heart.”")]],
+["God designed sex to be enjoyed within the covenant of marriage.","T",[V("Hebrews 13:4","Let marriage be held in honor among all, and let the marriage bed be undefiled, for God will judge the sexually immoral and adulterous.")]],
+["Waiting until marriage is outdated and unrealistic.","M",[V("1 Thessalonians 4:3-5","For this is the will of God, your sanctification: that you abstain from sexual immorality; that each one of you know how to control his own body in holiness and honor, not in the passion of lust like the Gentiles who do not know God;")]],
 ["If someone truly loves you, they will respect your boundaries.","T",[
   V("2 Timothy 2:22","So flee youthful passions and pursue righteousness, faith, love, and peace, along with those who call on the Lord from a pure heart."),
   V("1 Corinthians 6:18","Flee from sexual immorality. Every other sin a person commits is outside the body, but the sexually immoral person sins against his own body.")]],
@@ -34,8 +34,8 @@ const Q = [
   V("Proverbs 4:23","Keep your heart with all vigilance,\nfor from it flow the springs of life."),
   V("Proverbs 31:30","Charm is deceitful, and beauty is vain,\nbut a woman who fears the Lord is to be praised."),
   V("1 Samuel 16:7","But the Lord said to Samuel, “Do not look on his appearance or on the height of his stature, because I have rejected him. For the Lord sees not as man sees: man looks on the outward appearance, but the Lord looks on the heart.”")]],
-["Being equally yoked means you simply attend the same church.","M",[V("2 Corinthians 6:14")]],
-["Someone’s potential should matter more than their current character.","M",[V("Matthew 7:16")]]
+["Being equally yoked means you simply attend the same church.","M",[V("2 Corinthians 6:14","Do not be unequally yoked with unbelievers. For what partnership has righteousness with lawlessness? Or what fellowship has light with darkness?")]],
+["Someone’s potential should matter more than their current character.","M",[V("Matthew 7:16","You will recognize them by their fruits. Are grapes gathered from thornbushes, or figs from thistles?")]]
 ];
 
 let S = { phase: 'lobby', endsAt: 0, reveal: -1, round: 0 };
@@ -54,7 +54,17 @@ function snap() {
   for (const u in votes) if (Object.keys(votes[u]).length >= Q.length) finished++;
   // answers are only sent once revealed
   const key = Q.slice(0, Math.max(0, r + 1)).map(q => ({ a: q[1], refs: q[2] }));
-  return { ...S, now: Date.now(), players: players.size, finished, tally, key, total: Q.length };
+  let summary = null;
+  if (r >= Q.length) {
+    let people = 0, high = 0;
+    for (const u in votes) {
+      people++;
+      let ok = 0; Q.forEach((q, i) => { if (votes[u][i] === q[1]) ok++; });
+      if (ok / Q.length >= 0.8) high++;
+    }
+    summary = { people, high, need: Math.ceil(Q.length * 0.8) };
+  }
+  return { ...S, now: Date.now(), players: players.size, finished, tally, key, summary, total: Q.length };
 }
 function broadcast() {
   dirty = false;
@@ -110,6 +120,7 @@ http.createServer(async (req, res) => {
       S = { phase: 'answering', endsAt: Date.now() + m * 60000, reveal: -1, round: Date.now() }; votes = {};
     } else if (b.action === 'plus' && S.phase === 'answering') S.endsAt += 60000;
     else if (b.action === 'end' && S.phase === 'answering') { S.phase = 'reveal'; S.reveal = -1; }
+    else if (b.action === 'prev' && S.phase === 'reveal' && S.reveal > 0) S.reveal--;
     else if (b.action === 'next' && S.phase === 'reveal' && S.reveal < Q.length) S.reveal++;
     else if (b.action === 'reset') { S = { phase: 'lobby', endsAt: 0, reveal: -1, round: S.round }; votes = {}; }
     broadcast(); return json(res, 200, { ok: true });
