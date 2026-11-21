@@ -1,0 +1,8 @@
+{
+  "name": "kingdom-kulture-myth-or-truth",
+  "version": "1.0.0",
+  "description": "Live Myth or Truth game for Kingdom Kulture",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
