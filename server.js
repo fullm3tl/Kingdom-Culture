@@ -8,7 +8,7 @@ if (!process.env.HOST_KEY) console.warn('HOST_KEY not set – using the default 
 // Leave a verse's text as "" to show only the reference.
 const V = (ref, text = '') => [ref, text];
 const Q = [
-["Chemistry is enough to build a lasting relationship.","M",[V("Proverbs 24:3-4","By wisdom a house is built,\nand by understanding it is established;\nby knowledge the rooms are filled\nwith all precious and pleasant riches.")]],
+["Chemistry is enough to build a lasting relationship.","M",[]],
 ["Sex was designed by God, not created by culture.","T",[
   V("Genesis 2:24-25","Therefore a man shall leave his father and his mother and hold fast to his wife, and they shall become one flesh. And the man and his wife were both naked and were not ashamed."),
   V("Proverbs 5:18-19","Let your fountain be blessed,\nand rejoice in the wife of your youth,\na lovely deer, a graceful doe.\nLet her breasts fill you at all times with delight;\nbe intoxicated always in her love.")]],
